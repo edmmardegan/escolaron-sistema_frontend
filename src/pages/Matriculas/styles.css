@@ -1,0 +1,43 @@
+/* Ajuste para o Grid do Formulário */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-field {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+
+/* Estilo para as Badges de Situação */
+.badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.bg-cursando { background-color: #d4edda; color: #155724; }
+.bg-trancado { background-color: #fff3cd; color: #856404; }
+
+/* Inputs pequenos do Boletim */
+.input-pequeno {
+  width: 60px;
+  padding: 4px;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}

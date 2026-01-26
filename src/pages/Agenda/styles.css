@@ -1,0 +1,91 @@
+.container-agenda {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* Sistema de Abas */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #eee;
+}
+
+.tabs button {
+  padding: 10px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-weight: bold;
+  color: #666;
+  transition: 0.3s;
+}
+
+.tabs button.active {
+  color: #007bff;
+  border-bottom: 3px solid #007bff;
+}
+
+/* Estilos de Status na Tabela */
+.status-pendente { 
+  background-color: #e2e3e5; 
+  color: #383d41; 
+  padding: 3px 8px; 
+  border-radius: 4px; 
+}
+
+.status-presente { 
+  background-color: #d4edda; 
+  color: #155724; 
+  padding: 3px 8px; 
+  border-radius: 4px; 
+}
+
+.status-falta { 
+  background-color: #f8d7da; 
+  color: #721c24; 
+  padding: 3px 8px; 
+  border-radius: 4px; 
+}
+
+/* Botões de Ação na Agenda */
+.aba-conteudo table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.aba-conteudo th, .aba-conteudo td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.btn-check { color: #28a745; margin-right: 10px; cursor: pointer; }
+.btn-x { color: #dc3545; cursor: pointer; }
+
+.badge-dia-semana {
+  margin-left: 15px;
+  background-color: #007bff;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.text-muted {
+  color: #6c757d;
+  font-size: 0.8rem;
+}
+
+.col-horario {
+  font-weight: bold;
+  color: #333;
+}
+
+.badge-status.pendente { background-color: #ffc107; color: #000; }
+.badge-status.presente { background-color: #28a745; color: #fff; }
+.badge-status.falta { background-color: #dc3545; color: #fff; }

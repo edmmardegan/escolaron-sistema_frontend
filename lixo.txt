@@ -1,0 +1,117 @@
+Cadastro alunos
+Nome
+data nascimento
+nome pai
+nome mae
+telefone (16) 99625-9279 (seguir esse padrão de preenchimento)
+Ativo (ativo ou inativo) ativo padrao
+data cadastro (data do dia automaticamente)
+data inativação (se inativado preenche com a data do dia)
+
+Cadastro curso
+nome
+termos
+
+Cadastro Matricula
+aluno (buscar cadastro alunos)
+Curso (buscar cadastro curso)
+valor matricula
+valor Mensalidade
+presencial (combobox 2 opção - presencial ou residencial)
+valor combustivel (liberar preenchimento somente se residencial for selecionado)
+dia vencimento (05,10,15,20,25,30) somente essas opções
+Situação (em andamento, trancado, finalizado) em andamento padrao
+data Inicio (data do dia automaticamente)
+data termino (preenchida automaticamente quando campo situação for diferente de "em andamento")
+
+Cadastro Matricula termos
+aluno + curso (vinculado ao cadastro matricula)
+termo
+data Inicio (data do dia automaticamente)
+data termino
+quantidade aulas (atualiza automaticamente quando lançar presença no cadastro aula)
+nota
+
+cadastro aulas
+aluno + curso (vinculado ao cadastro matricula)
+data (colocar a data do dia como sugestão)
+presenca (check box realizada ou não realizada)
+
+cadastro financeiro (mensalidades)
+nome (buscar no cadastro do aluno)
+data vencimento
+data pagamento
+valor (soma valor mensalidade + valor combustivel)
+
+criar um botão para gerar as mensalidades de acordo com os cadastro matricula e o mês desejado (janeiro a dezembro)
+criar botão para dar baixa
+criar botão na tela para visualizar as mensalidades (aberta, pagas e todas) 
+
+formato papel: a4
+largura utilizada: 18 cm.
+altura utilizada: 28 cm
+
+dar espaco entre capa, matricula, mensalidade de 1 cm para poder cortar a folha
+
+--------------------------------------------------------
+capa: altura 5cm
+textos centralizado
+1 coluna 18 cm
+
+Carnê de pagamento (letras grandes pode usar 3 linhas)
+    linha em branco
+Aluno: Nome Vencimento: dia (letras media pode usar 2 linhas)
+    linha em branco
+Após 5 dias do vencimento será cobrado multa de R$ 5.00
+
+-------------------------------------------
+Matricula: altura 5cm
+textos centralizado
+3 colunas (1 coluna 6 cm, 2 coluna 2cm, 3 coluna 6cm)
+
+1 coluna com 8 linhas
+Recibo de Matricula
+    linha em branco
+    linha em branco
+Matricula (letras grande pode usar 2 linhas)
+    linha em branco
+    linha em branco
+Valor R$: 
+
+2 coluna em branco
+
+3 coluna com 8 linhas
+Recibo de Matricula
+    nome do aluno
+    linha em branco
+Matricula (letras grande pode usar 2 linhas)
+    linha em branco
+    linha em branco
+Valor R$: 
+
+------------------------------------
+Mensalidade: altura 5cm
+textos centralizado
+3 colunas (1 coluna 6 cm, 2 coluna 2cm, 3 coluna 6cm)
+
+1 coluna com 8 linhas
+Recibo de Pagamento
+    linha em branco
+    linha em branco
+Mensalidade mês
+nome mes / ano
+    linha em branco
+Vencimento: dd/mm/aa     Data Pagto
+Valor R$: valor total    __ / __ / __
+
+2 coluna em branco
+
+1 coluna com 8 linhas
+Recibo de Pagamento
+    Nome do aluno
+    linha em branco
+Mensalidade mês
+nome mes / ano
+    linha em branco
+Vencimento: dd/mm/aa     Data Pagto
+Valor R$: valor total    __ / __ / __
