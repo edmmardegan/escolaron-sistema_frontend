@@ -24,6 +24,7 @@ export default function Login() {
   return (
     <div className="login-container">
       <form className="login-form" onSubmit={handleSubmit}>
+        <h2>BEM VINDO</h2>
         <h2>Acesso ao Sistema</h2>
         <input 
           type="text" 

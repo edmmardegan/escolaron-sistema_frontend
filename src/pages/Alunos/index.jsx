@@ -1,75 +1,36 @@
 import { useState, useEffect } from "react";
-import { FaTrash, FaPen, FaUserPlus } from "react-icons/fa";
+import { FaTrash, FaPen, FaUserPlus, FaSave, FaTimes } from "react-icons/fa";
 import { api } from "../../services/api";
 import "./styles.css";
 
 export default function Alunos() {
   const [listaAlunos, setListaAlunos] = useState([]);
   const [formAluno, setFormAluno] = useState({
-    nome: "",
-    telefone: "",
-    dataNascimento: "",
-    ativo: true,
-    nomePai: "",
-    nomeMae: "",
-    rua: "",
-    bairro: "",
-    cidade: "",
+    nome: "", telefone: "", dataNascimento: "", ativo: true,
+    nomePai: "", nomeMae: "", rua: "", bairro: "", cidade: "",
   });
   const [editandoId, setEditandoId] = useState(null);
   const [exibindoForm, setExibindoForm] = useState(false);
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useEffect(() => { carregar(); }, []);
 
   const carregar = async () => {
     try {
       const dados = await api.getAlunos();
       setListaAlunos(dados);
-    } catch (e) {
-      console.error(e);
-      alert("Erro ao carregar alunos.");
-    }
+    } catch (e) { console.error(e); alert("Erro ao carregar alunos."); }
   };
 
   const salvar = async (e) => {
     e.preventDefault();
     try {
-      // Remove a formatação antes de enviar pro banco (opcional, mas recomendado salvar limpo)
-      // Se preferir salvar com mascara, basta remover essa linha do payload
-      const payload = { ...formAluno };
-
-      await api.saveAluno(payload, editandoId);
+      await api.saveAluno(formAluno, editandoId);
       alert("Aluno salvo!");
-
-      setFormAluno({
-        nome: "",
-        telefone: "",
-        dataNascimento: "",
-        ativo: true,
-        nomePai: "",
-        nomeMae: "",
-        rua: "",
-        bairro: "",
-        cidade: "",
-      });
+      setFormAluno({ nome: "", telefone: "", dataNascimento: "", ativo: true, nomePai: "", nomeMae: "", rua: "", bairro: "", cidade: "" });
       setEditandoId(null);
       setExibindoForm(false);
       carregar();
-    } catch (e) {
-      alert("Erro ao salvar");
-    }
-  };
-
-  const deletar = async (id) => {
-    if (!confirm("Excluir aluno?")) return;
-    try {
-      await api.deleteAluno(id);
-      carregar();
-    } catch (e) {
-      alert("Erro ao excluir");
-    }
+    } catch (e) { alert("Erro ao salvar"); }
   };
 
   const prepararEdicao = (aluno) => {
@@ -78,179 +39,86 @@ export default function Alunos() {
     setExibindoForm(true);
   };
 
-  // --- FUNÇÃO MÁGICA DA MÁSCARA ---
   const mascaraTelefone = (valor) => {
     if (!valor) return "";
-
-    // 1. Remove tudo que não é número
     valor = valor.replace(/\D/g, "");
-
-    // 2. Limita a 11 dígitos
     valor = valor.substring(0, 11);
-
-    // 3. Aplica a formatação (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
     valor = valor.replace(/^(\d{2})(\d)/g, "($1) $2");
     valor = valor.replace(/(\d)(\d{4})$/, "$1-$2");
-
     return valor;
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
-    // Se for o campo telefone, aplica a máscara
     if (name === "telefone") {
       setFormAluno({ ...formAluno, [name]: mascaraTelefone(value) });
     } else {
-      setFormAluno({
-        ...formAluno,
-        [name]: type === "checkbox" ? checked : value,
-      });
+      setFormAluno({ ...formAluno, [name]: type === "checkbox" ? checked : value });
     }
   };
 
   return (
-    <div>
+    <div className="container-alunos">
       <div className="card">
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
+        <div className="header-card">
           <h2>Gerenciar Alunos</h2>
-          <button
-            className="btn btn-primary"
-            onClick={() => setExibindoForm(!exibindoForm)}
-          >
-            {exibindoForm ? (
-              "Cancelar"
-            ) : (
-              <>
-                <FaUserPlus /> Novo Aluno
-              </>
-            )}
-          </button>
+          {!exibindoForm && (
+            <button className="btn btn-primary" onClick={() => setExibindoForm(true)}>
+              <FaUserPlus /> Novo Aluno
+            </button>
+          )}
         </div>
 
         {exibindoForm && (
-          <form
-            onSubmit={salvar}
-            className="form-grid"
-            style={{ marginTop: "20px" }}
-          >
-            <div className="input-group full-width">
+          <form onSubmit={salvar} className="form-grid">
+            {/* LINHA 1 */}
+            <div className="input-group campo-medio">
               <label>Nome Completo:</label>
-              <input
-                required
-                name="nome"
-                value={formAluno.nome}
-                onChange={handleChange}
-                className="input-field"
-              />
+              <input required name="nome" value={formAluno.nome} onChange={handleChange} className="input-field" />
             </div>
-
-            {/* CAMPO TELEFONE COM MÁSCARA */}
             <div className="input-group">
               <label>Telefone:</label>
-              <input
-                name="telefone"
-                value={formAluno.telefone}
-                onChange={handleChange}
-                className="input-field"
-                placeholder="(16) 99999-9999"
-                maxLength="15" // Garante que não digite além da conta
-              />
+              <input name="telefone" value={formAluno.telefone} onChange={handleChange} className="input-field" maxLength="15" />
             </div>
-
             <div className="input-group">
               <label>Data Nasc:</label>
-              <input
-                type="date"
-                name="dataNascimento"
-                value={formAluno.dataNascimento}
-                onChange={handleChange}
-                className="input-field"
-              />
+              <input type="date" name="dataNascimento" value={formAluno.dataNascimento} onChange={handleChange} className="input-field" />
             </div>
 
-            <div className="input-group full-width">
+            {/* LINHA 2 */}
+            <div className="input-group campo-medio">
               <label>Rua:</label>
-              <input
-                name="rua"
-                value={formAluno.rua}
-                onChange={handleChange}
-                className="input-field"
-              />
+              <input name="rua" value={formAluno.rua} onChange={handleChange} className="input-field" />
             </div>
             <div className="input-group">
               <label>Bairro:</label>
-              <input
-                name="bairro"
-                value={formAluno.bairro}
-                onChange={handleChange}
-                className="input-field"
-              />
+              <input name="bairro" value={formAluno.bairro} onChange={handleChange} className="input-field" />
             </div>
             <div className="input-group">
               <label>Cidade:</label>
-              <input
-                name="cidade"
-                value={formAluno.cidade}
-                onChange={handleChange}
-                className="input-field"
-              />
+              <input name="cidade" value={formAluno.cidade} onChange={handleChange} className="input-field" />
             </div>
 
-            <div className="input-group">
-              <label>Pai:</label>
-              <input
-                name="nomePai"
-                value={formAluno.nomePai}
-                onChange={handleChange}
-                className="input-field"
-              />
+            {/* LINHA 3 - RECUPERADA */}
+            <div className="input-group campo-medio">
+              <label>Nome do Pai:</label>
+              <input name="nomePai" value={formAluno.nomePai} onChange={handleChange} className="input-field" />
             </div>
-            <div className="input-group">
-              <label>Mãe:</label>
-              <input
-                name="nomeMae"
-                value={formAluno.nomeMae}
-                onChange={handleChange}
-                className="input-field"
-              />
+            <div className="input-group campo-medio">
+              <label>Nome da Mãe:</label>
+              <input name="nomeMae" value={formAluno.nomeMae} onChange={handleChange} className="input-field" />
             </div>
 
-            <div
-              className="input-group"
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: "10px",
-                paddingTop: "30px",
-              }}
-            >
-              <input
-                type="checkbox"
-                name="ativo"
-                checked={formAluno.ativo}
-                onChange={handleChange}
-                style={{ width: "20px", height: "20px", cursor: "pointer" }}
-              />
-              <label
-                style={{ cursor: "pointer" }}
-                onClick={() =>
-                  setFormAluno({ ...formAluno, ativo: !formAluno.ativo })
-                }
-              >
-                Aluno Ativo?
-              </label>
+            {/* LINHA 4 - STATUS RECUPERADO */}
+            <div className="input-group checkbox-group">
+              <input type="checkbox" name="ativo" id="ativo" checked={formAluno.ativo} onChange={handleChange} className="checkbox-field" />
+              <label htmlFor="ativo">Aluno Ativo?</label>
             </div>
 
-            <div className="full-width">
-              <button type="submit" className="btn btn-primary">
-                Salvar Ficha
+            <div className="acoes-form">
+              <button type="submit" className="btn btn-primary"><FaSave /> Salvar Ficha</button>
+              <button type="button" className="btn btn-secondary" onClick={() => { setExibindoForm(false); setEditandoId(null); }}>
+                <FaTimes /> Cancelar
               </button>
             </div>
           </form>
@@ -270,39 +138,14 @@ export default function Alunos() {
           <tbody>
             {listaAlunos.map((a) => (
               <tr key={a.id}>
-                <td>
-                  <strong>{a.nome}</strong>
-                </td>
-
-                {/* TELEFONE COM MÁSCARA NA LISTAGEM TAMBÉM */}
+                <td><strong>{a.nome}</strong></td>
                 <td>{mascaraTelefone(a.telefone)}</td>
-
-                <td
-                  style={{
-                    fontWeight: "bold",
-                    color: a.ativo ? "green" : "red",
-                  }}
-                >
+                <td style={{ color: a.ativo ? "green" : "red", fontWeight: "bold" }}>
                   {a.ativo ? "ATIVO" : "INATIVO"}
                 </td>
-
                 <td className="acoes">
-                  <button
-                    onClick={() => prepararEdicao(a)}
-                    className="btn-icon icon-edit"
-                    style={{ color: "#333" }}
-                    title="Editar"
-                  >
-                    <FaPen />
-                  </button>
-                  <button
-                    onClick={() => deletar(a.id)}
-                    className="btn-icon icon-trash"
-                    style={{ color: "#333" }}
-                    title="Excluir"
-                  >
-                    <FaTrash />
-                  </button>
+                  <button onClick={() => prepararEdicao(a)} className="btn-icon icon-edit" title="Editar"><FaPen /></button>
+                  <button onClick={() => api.deleteAluno(a.id).then(carregar)} className="btn-icon icon-trash" title="Excluir"><FaTrash /></button>
                 </td>
               </tr>
             ))}
