@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { FaTrash, FaPen, FaUserPlus, FaSave, FaTimes } from "react-icons/fa";
-import { api } from "../../services/api";
+// src/pages/Alunos/index.jsx
+import { useAuth } from "../../AuthContext.jsx"; // "../.." sai de Alunos, sai de pages e chega na src
+import { api } from "../../services/api.js";     // "../.." sai de Alunos, sai de pages e entra em services
 import "./styles.css";
 
 export default function Alunos() {

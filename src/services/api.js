@@ -7,16 +7,28 @@ const axiosInstance = axios.create({
   baseURL: api_url,
 });
 
+// --- INTERCEPTADOR DE TOKEN ---
+// Esta parte garante que o Token seja enviado em todas as requisições automaticamente
+axiosInstance.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  
+  // SÓ ADICIONA O HEADER SE O TOKEN EXISTIR
+  if (token && token !== 'undefined' && token !== 'null') {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  
+  return config;
+});
+
 export const api = {
   // --- AUTENTICAÇÃO ---
-  login: async (username, password) => {
-    const response = await axiosInstance.post("/auth/login", {
-      username,
-      password,
-    });
-    return response.data;
-  },
-
+login: async (email, password) => { // Mudei de username para email para ficar claro
+  const response = await axiosInstance.post("/auth/login", {
+    email,     // O NestJS vai receber 'email'
+    password,  // O NestJS vai receber 'password'
+  });
+  return response.data;
+},
   // --- ALUNOS ---
   getAlunos: async () => {
     const res = await axiosInstance.get("/alunos");
@@ -39,12 +51,10 @@ export const api = {
   // --- MATRÍCULAS ---
   getMatriculas: async () => (await axiosInstance.get("/matriculas")).data,
   saveMatricula: async (matricula, id = null) => {
-    if (id)
-      return (await axiosInstance.put(`/matriculas/${id}`, matricula)).data;
+    if (id) return (await axiosInstance.put(`/matriculas/${id}`, matricula)).data;
     return (await axiosInstance.post("/matriculas", matricula)).data;
   },
-  deleteMatricula: async (id) =>
-    (await axiosInstance.delete(`/matriculas/${id}`)).data,
+  deleteMatricula: async (id) => (await axiosInstance.delete(`/matriculas/${id}`)).data,
 
   updateNota: async (termoId, teorica, pratica) => {
     return (
@@ -56,7 +66,6 @@ export const api = {
   },
 
   // --- FINANCEIRO ---
-  // Função que você vai usar no botão da tela Financeiro
   gerarParcelaGlobal: (dadosConfig) => {
     return axiosInstance.post("/financeiro/gerar-lote-anual", dadosConfig);
   },
