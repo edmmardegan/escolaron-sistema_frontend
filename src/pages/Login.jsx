@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useAuth } from "../AuthContext.jsx"; // ".." sai de pages e acha o AuthContext na src
-import { api } from "../services/api.js";     // ".." sai de pages e entra em services
+// Importando o hook da raiz conforme sua estrutura atual
+import { useAuth } from "../hooks/useAuth.js";
+import api from "../services/api.js"; 
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -17,21 +18,23 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // Chamada para o seu backend NestJS
-      // O seu service.api.js deve ter a função login configurada
       const data = await api.login(email, password);
 
-      // O NestJS geralmente retorna um objeto com { user, access_token }
-      // Ajuste conforme o retorno real do seu backend
-      if (data.access_token) {
+      if (data && data.access_token) {
         login(data.user, data.access_token);
-        navigate('/alunos');
+        
+        if (data.user?.primeiroAcesso) {
+          navigate('/reset-password');
+        } else {
+          navigate('/alunos');
+        }
       } else {
-        alert('Erro na autenticação');
+        alert('Erro na resposta do servidor.');
       }
     } catch (error) {
       console.error("Erro ao logar:", error);
-      alert('Usuário ou senha incorretos!');
+      const msg = error.response?.data?.message || 'Usuário ou senha incorretos!';
+      alert(msg);
     } finally {
       setLoading(false);
     }
@@ -45,40 +48,24 @@ export default function Login() {
         <div style={{ marginBottom: '15px' }}>
           <label>Email:</label>
           <input 
-            type="email" 
-            required
-            value={email} 
+            type="email" required value={email} 
             onChange={e => setEmail(e.target.value)} 
             style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ddd' }}
-            placeholder="seu@email.com"
           />
         </div>
 
         <div style={{ marginBottom: '20px' }}>
           <label>Senha:</label>
           <input 
-            type="password" 
-            required
-            value={password} 
+            type="password" required value={password} 
             onChange={e => setPassword(e.target.value)} 
             style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ddd' }}
-            placeholder="******"
           />
         </div>
 
         <button 
-          type="submit" 
-          disabled={loading}
-          style={{ 
-            width: '100%', 
-            padding: '12px', 
-            background: '#3498db', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '4px', 
-            cursor: loading ? 'not-allowed' : 'pointer',
-            fontSize: '16px'
-          }}
+          type="submit" disabled={loading}
+          style={{ width: '100%', padding: '12px', background: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
         >
           {loading ? 'Carregando...' : 'Entrar'}
         </button>

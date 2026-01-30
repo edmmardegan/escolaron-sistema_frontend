@@ -1,52 +1,53 @@
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-
-// Contexto e Estilos
-import { AuthProvider, useAuth } from "./AuthContext.jsx";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 
-// Componentes
-import Menu from "./components/Menu.jsx";
+import { AuthProvider } from "./AuthContext.jsx";
+import { useAuth } from "./hooks/useAuth.js";
 
-// Páginas
-import Login from "./pages/Login.jsx";
-import ResetPassword from "./pages/Usuarios/ResetPassword.jsx"; // <<-- FALTA ESSA IMPORTAÇÃO!
-
-// Páginas dentro de subpastas
-import Alunos from "./pages/Alunos";
+// Verifique se estas linhas existem e se os nomes batem com as pastas
 import Cursos from "./pages/Cursos";
 import Matriculas from "./pages/Matriculas";
 import Agenda from "./pages/Agenda";
 import Financeiro from "./pages/Financeiro";
 import Usuarios from "./pages/Usuarios";
+// Restante dos componentes...
+import Menu from "./components/Menu.jsx";
+import Login from "./pages/Login.jsx";
+import ResetPassword from "./pages/Usuarios/ResetPassword.jsx";
+import Alunos from "./pages/Alunos/index.jsx";
 
 // --- COMPONENTE DE PROTEÇÃO ---
 const PrivateRoute = ({ children, roleRequired }) => {
-  const { user, authenticated } = useAuth();
+  const { user, authenticated, loading } = useAuth();
 
+  // 1. Enquanto carrega o LocalStorage, mostra um aviso
+  if (loading) {
+    return <div className="loading-screen">Verificando permissões...</div>;
+  }
+
+  // 2. Se não estiver logado, vai para o Login
   if (!authenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
-  // Se for primeiro acesso, bloqueia TUDO e manda pro Reset
+  // 3. Se for Primeiro Acesso, bloqueia as páginas e força o Reset
+  // IMPORTANTE: Só redireciona se o usuário NÃO estiver na página de reset
   if (user?.primeiroAcesso) {
-    return <Navigate to="/reset-password" />;
+    return <Navigate to="/reset-password" replace />;
   }
 
-  if (roleRequired && user.role !== roleRequired) {
-    return <Navigate to="/login" />; // Ou Dashboard se você tiver um
+  // 4. Se a rota exigir Admin e o usuário não for
+  if (roleRequired && user?.role !== roleRequired) {
+    return <Navigate to="/alunos" replace />;
   }
 
+  // Se passou em tudo, renderiza o Menu e o Conteúdo
   return (
-    <>
-      <Menu /> {/* O Menu só aparece aqui, se ele passou pelas travas */}
-      {children}
-    </>
+    <div className="app-layout">
+      <Menu />
+      <main className="content-container">{children}</main>
+    </div>
   );
 };
 
@@ -55,15 +56,11 @@ export default function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Rotas Públicas */}
+          {/* Rota Pública */}
           <Route path="/login" element={<Login />} />
 
-          {/* Rota de Reset: Ele precisa estar logado, mas não passa pela PrivateRoute 
-              comum para evitar o loop de redirecionamento */}
+          {/* Rota de Reset - Ela é semi-protegida: precisa de login, mas ignora a trava de primeiroAcesso */}
           <Route path="/reset-password" element={<ResetPassword />} />
-
-          {/* Redirecionamento Inicial */}
-          <Route path="/" element={<Navigate to="/login" />} />
 
           {/* Rotas Protegidas */}
           <Route
@@ -106,6 +103,8 @@ export default function App() {
               </PrivateRoute>
             }
           />
+
+          {/* Rota restrita a ADMIN */}
           <Route
             path="/usuarios"
             element={
@@ -115,8 +114,9 @@ export default function App() {
             }
           />
 
-          {/* Rota de fallback */}
-          <Route path="*" element={<Navigate to="/login" />} />
+          {/* Redirecionamentos de Segurança */}
+          <Route path="/" element={<Navigate to="/alunos" replace />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
     </AuthProvider>

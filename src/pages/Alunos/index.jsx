@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { FaTrash, FaPen, FaUserPlus, FaSave, FaTimes } from "react-icons/fa";
-// src/pages/Alunos/index.jsx
-import { useAuth } from "../../AuthContext.jsx"; // "../.." sai de Alunos, sai de pages e chega na src
-import { api } from "../../services/api.js";     // "../.." sai de Alunos, sai de pages e entra em services
+import api from "../../services/api.js"; // Sem chaves!
+import { useAuth } from "../../hooks/useAuth.js";
 import "./styles.css";
 
 export default function Alunos() {
@@ -13,14 +12,24 @@ export default function Alunos() {
   });
   const [editandoId, setEditandoId] = useState(null);
   const [exibindoForm, setExibindoForm] = useState(false);
+  const [carregando, setCarregando] = useState(false); // Trava de segurança para UX
 
-  useEffect(() => { carregar(); }, []);
+  useEffect(() => { 
+    carregar(); 
+  }, []);
 
   const carregar = async () => {
     try {
+      setCarregando(true);
       const dados = await api.getAlunos();
-      setListaAlunos(dados);
-    } catch (e) { console.error(e); alert("Erro ao carregar alunos."); }
+      // Garante que listaAlunos sempre receba um array para o .map não quebrar
+      setListaAlunos(Array.isArray(dados) ? dados : []);
+    } catch (e) { 
+      console.error("Erro ao carregar:", e); 
+      // Se der erro 401 aqui, é porque o token expirou
+    } finally {
+      setCarregando(false);
+    }
   };
 
   const salvar = async (e) => {
@@ -28,11 +37,16 @@ export default function Alunos() {
     try {
       await api.saveAluno(formAluno, editandoId);
       alert("Aluno salvo!");
-      setFormAluno({ nome: "", telefone: "", dataNascimento: "", ativo: true, nomePai: "", nomeMae: "", rua: "", bairro: "", cidade: "" });
+      setFormAluno({ 
+        nome: "", telefone: "", dataNascimento: "", ativo: true, 
+        nomePai: "", nomeMae: "", rua: "", bairro: "", cidade: "" 
+      });
       setEditandoId(null);
       setExibindoForm(false);
       carregar();
-    } catch (e) { alert("Erro ao salvar"); }
+    } catch (e) { 
+      alert("Erro ao salvar aluno. Verifique os campos."); 
+    }
   };
 
   const prepararEdicao = (aluno) => {
@@ -73,7 +87,6 @@ export default function Alunos() {
 
         {exibindoForm && (
           <form onSubmit={salvar} className="form-grid">
-            {/* LINHA 1 */}
             <div className="input-group campo-medio">
               <label>Nome Completo:</label>
               <input required name="nome" value={formAluno.nome} onChange={handleChange} className="input-field" />
@@ -87,7 +100,6 @@ export default function Alunos() {
               <input type="date" name="dataNascimento" value={formAluno.dataNascimento} onChange={handleChange} className="input-field" />
             </div>
 
-            {/* LINHA 2 */}
             <div className="input-group campo-medio">
               <label>Rua:</label>
               <input name="rua" value={formAluno.rua} onChange={handleChange} className="input-field" />
@@ -101,7 +113,6 @@ export default function Alunos() {
               <input name="cidade" value={formAluno.cidade} onChange={handleChange} className="input-field" />
             </div>
 
-            {/* LINHA 3 - RECUPERADA */}
             <div className="input-group campo-medio">
               <label>Nome do Pai:</label>
               <input name="nomePai" value={formAluno.nomePai} onChange={handleChange} className="input-field" />
@@ -111,7 +122,6 @@ export default function Alunos() {
               <input name="nomeMae" value={formAluno.nomeMae} onChange={handleChange} className="input-field" />
             </div>
 
-            {/* LINHA 4 - STATUS RECUPERADO */}
             <div className="input-group checkbox-group">
               <input type="checkbox" name="ativo" id="ativo" checked={formAluno.ativo} onChange={handleChange} className="checkbox-field" />
               <label htmlFor="ativo">Aluno Ativo?</label>
@@ -128,31 +138,41 @@ export default function Alunos() {
       </div>
 
       <div className="tabela-container">
-        <table className="tabela">
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Telefone</th>
-              <th>Status</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {listaAlunos.map((a) => (
-              <tr key={a.id}>
-                <td><strong>{a.nome}</strong></td>
-                <td>{mascaraTelefone(a.telefone)}</td>
-                <td style={{ color: a.ativo ? "green" : "red", fontWeight: "bold" }}>
-                  {a.ativo ? "ATIVO" : "INATIVO"}
-                </td>
-                <td className="acoes">
-                  <button onClick={() => prepararEdicao(a)} className="btn-icon icon-edit" title="Editar"><FaPen /></button>
-                  <button onClick={() => api.deleteAluno(a.id).then(carregar)} className="btn-icon icon-trash" title="Excluir"><FaTrash /></button>
-                </td>
+        {carregando ? (
+          <p>Carregando dados...</p>
+        ) : (
+          <table className="tabela">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Telefone</th>
+                <th>Status</th>
+                <th>Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {listaAlunos.length > 0 ? (
+                listaAlunos.map((a) => (
+                  <tr key={a.id}>
+                    <td><strong>{a.nome}</strong></td>
+                    <td>{mascaraTelefone(a.telefone)}</td>
+                    <td style={{ color: a.ativo ? "green" : "red", fontWeight: "bold" }}>
+                      {a.ativo ? "ATIVO" : "INATIVO"}
+                    </td>
+                    <td className="acoes">
+                      <button onClick={() => prepararEdicao(a)} className="btn-icon icon-edit" title="Editar"><FaPen /></button>
+                      <button onClick={async () => { if(window.confirm("Excluir?")) { await api.deleteAluno(a.id); carregar(); } }} className="btn-icon icon-trash" title="Excluir"><FaTrash /></button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>Nenhum aluno encontrado.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

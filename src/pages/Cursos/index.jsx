@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { FaTrash, FaPen, FaPlus, FaSave, FaTimes } from "react-icons/fa";
-import { api } from "../../services/api";
+import api from "../../services/api";
 import "./styles.css";
 
 export default function Cursos() {

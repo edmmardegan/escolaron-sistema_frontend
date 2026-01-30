@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import api from "../../services/api"; // Removidas as chaves { } para usar o export default
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../AuthContext";
+import { useAuth } from "../../hooks/useAuth.js";
 
 const ResetPassword = () => {
   const [novaSenha, setNovaSenha] = useState("");

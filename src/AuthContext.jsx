@@ -1,17 +1,27 @@
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useState, useEffect } from "react";
 
-const AuthContext = createContext({});
+export const AuthContext = createContext({});
 
 export function AuthProvider({ children }) {
-  // Inicializa o estado lendo do localStorage para manter o usuário logado ao dar F5
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem("user");
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    const carregarDados = () => {
+      const savedUser = localStorage.getItem("user");
+      const token = localStorage.getItem("token");
+      if (savedUser && token) {
+        try {
+          setUser(JSON.parse(savedUser));
+        } catch (e) {
+          localStorage.clear();
+        }
+      }
+      setLoading(false);
+    };
+    carregarDados();
+  }, []);
 
-  // Função de login que recebe os dados do usuário e o token do NestJS
   const login = (userData, token) => {
     localStorage.setItem("user", JSON.stringify(userData));
     localStorage.setItem("token", token);
@@ -19,24 +29,15 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    localStorage.clear();
     setUser(null);
   };
 
   return (
     <AuthContext.Provider
-      value={{
-        authenticated: !!user, // Mudei de 'signed' para 'authenticated'
-        user,
-        loading,
-        login,
-        logout,
-      }}
+      value={{ authenticated: !!user, user, loading, login, logout }}
     >
       {children}
     </AuthContext.Provider>
   );
 }
-
-export const useAuth = () => useContext(AuthContext);

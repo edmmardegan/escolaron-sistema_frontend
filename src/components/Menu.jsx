@@ -1,6 +1,7 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from "../AuthContext.jsx"; // ".." sai de components e acha o AuthContext na src
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth.js"; // <<-- APONTE PARA O ARQUIVO DO HOOK
+import api from "../services/api.js";
 
 export default function Menu() {
   const { logout, user } = useAuth();

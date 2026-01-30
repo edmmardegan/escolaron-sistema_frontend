@@ -1,7 +1,5 @@
 import { useContext } from "react";
-// O ponto indica a pasta atual. Como o arquivo está em /hooks, 
-// usamos "../" para sair de hooks e entrar na raiz da src
-import { AuthContext } from "../AuthContext.jsx"; 
+import { AuthContext } from "./AuthContext.jsx"; // O ponto indica que está na mesma pasta
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
