@@ -1,44 +1,52 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
-// src/App.jsx
-import { AuthProvider, useAuth } from "./AuthContext.jsx"; // Está na mesma pasta
-import Menu from "./components/Menu.jsx";        // Pasta components
-import Login from "./pages/Login.jsx";           // Arquivo direto em pages
+// Contexto e Estilos
+import { AuthProvider, useAuth } from "./AuthContext.jsx";
+import "./App.css";
 
-// Páginas dentro de subpastas (O React busca o index.jsx automaticamente)
-import Alunos from "./pages/Alunos"; 
+// Componentes
+import Menu from "./components/Menu.jsx";
+
+// Páginas
+import Login from "./pages/Login.jsx";
+import ResetPassword from "./pages/Usuarios/ResetPassword.jsx"; // <<-- FALTA ESSA IMPORTAÇÃO!
+
+// Páginas dentro de subpastas
+import Alunos from "./pages/Alunos";
 import Cursos from "./pages/Cursos";
 import Matriculas from "./pages/Matriculas";
 import Agenda from "./pages/Agenda";
 import Financeiro from "./pages/Financeiro";
+import Usuarios from "./pages/Usuarios";
 
-import "./App.css";
-
-// COMPONENTE DE PROTEÇÃO DE ROTA
+// --- COMPONENTE DE PROTEÇÃO ---
 const PrivateRoute = ({ children, roleRequired }) => {
-  const { signed, user, loading } = useAuth();
+  const { user, authenticated } = useAuth();
 
-  if (loading) {
-    return <div style={{ padding: "20px" }}>Carregando acesso...</div>;
-  }
-
-  if (!signed) {
+  if (!authenticated) {
     return <Navigate to="/login" />;
   }
 
-  // Exemplo de proteção por nível de acesso (opcional)
-  if (roleRequired && user?.role !== roleRequired) {
-    return <Navigate to="/alunos" />;
+  // Se for primeiro acesso, bloqueia TUDO e manda pro Reset
+  if (user?.primeiroAcesso) {
+    return <Navigate to="/reset-password" />;
+  }
+
+  if (roleRequired && user.role !== roleRequired) {
+    return <Navigate to="/login" />; // Ou Dashboard se você tiver um
   }
 
   return (
-    <div style={{ display: "flex" }}>
-      <Menu />
-      <main style={{ flex: 1, padding: "20px", marginLeft: "20px" }}>
-        {children}
-      </main>
-    </div>
+    <>
+      <Menu /> {/* O Menu só aparece aqui, se ele passou pelas travas */}
+      {children}
+    </>
   );
 };
 
@@ -47,18 +55,65 @@ export default function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Rota Pública */}
+          {/* Rotas Públicas */}
           <Route path="/login" element={<Login />} />
-          
+
+          {/* Rota de Reset: Ele precisa estar logado, mas não passa pela PrivateRoute 
+              comum para evitar o loop de redirecionamento */}
+          <Route path="/reset-password" element={<ResetPassword />} />
+
           {/* Redirecionamento Inicial */}
           <Route path="/" element={<Navigate to="/login" />} />
 
-          {/* Rotas Protegidas (Usando o padrão de subpastas) */}
-          <Route path="/alunos" element={<PrivateRoute><Alunos /></PrivateRoute>} />
-          <Route path="/cursos" element={<PrivateRoute><Cursos /></PrivateRoute>} />
-          <Route path="/matriculas" element={<PrivateRoute><Matriculas /></PrivateRoute>} />
-          <Route path="/agenda" element={<PrivateRoute><Agenda /></PrivateRoute>} />
-          <Route path="/financeiro" element={<PrivateRoute><Financeiro /></PrivateRoute>} />
+          {/* Rotas Protegidas */}
+          <Route
+            path="/alunos"
+            element={
+              <PrivateRoute>
+                <Alunos />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/cursos"
+            element={
+              <PrivateRoute>
+                <Cursos />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/matriculas"
+            element={
+              <PrivateRoute>
+                <Matriculas />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/agenda"
+            element={
+              <PrivateRoute>
+                <Agenda />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/financeiro"
+            element={
+              <PrivateRoute>
+                <Financeiro />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/usuarios"
+            element={
+              <PrivateRoute roleRequired="admin">
+                <Usuarios />
+              </PrivateRoute>
+            }
+          />
 
           {/* Rota de fallback */}
           <Route path="*" element={<Navigate to="/login" />} />

@@ -1,39 +1,46 @@
 import axios from "axios";
 
-// Verifique se o seu NestJS está na 3000 (padrão Ubuntu) ou 8080
+// 1. Definição da URL
 const api_url = "http://localhost:3000";
 
+// 2. Criamos a instância do Axios
 const axiosInstance = axios.create({
   baseURL: api_url,
 });
 
-// --- INTERCEPTADOR DE TOKEN ---
-// Esta parte garante que o Token seja enviado em todas as requisições automaticamente
+// 3. INTERCEPTADOR DE TOKEN (Mantido seu código original)
 axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  
-  // SÓ ADICIONA O HEADER SE O TOKEN EXISTIR
-  if (token && token !== 'undefined' && token !== 'null') {
+  const token = localStorage.getItem("token");
+  if (token && token !== "undefined" && token !== "null") {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  
   return config;
 });
 
+// 4. OBJETO COM TODAS AS ROTAS (Incluindo a de Reset Password)
 export const api = {
-  // --- AUTENTICAÇÃO ---
-login: async (email, password) => { // Mudei de username para email para ficar claro
-  const response = await axiosInstance.post("/auth/login", {
-    email,     // O NestJS vai receber 'email'
-    password,  // O NestJS vai receber 'password'
-  });
-  return response.data;
-},
-  // --- ALUNOS ---
-  getAlunos: async () => {
-    const res = await axiosInstance.get("/alunos");
-    return res.data;
+  // --- AUTENTICAÇÃO E CONTA ---
+  login: async (email, password) => {
+    const response = await axiosInstance.post("/auth/login", {
+      email,
+      password,
+    });
+    return response.data;
   },
+
+  // ADICIONEI ESTA FUNÇÃO AQUI PARA O RESET FUNCIONAR:
+  resetPassword: async (novaSenha) => {
+    return (await axiosInstance.post("/usuarios/reset-password", { novaSenha }))
+      .data;
+  },
+
+  // --- USUÁRIOS ---
+  saveUsuario: async (usuario) => {
+    return (await axiosInstance.post("/usuarios", usuario)).data;
+  },
+
+  // --- ALUNOS ---
+  getAlunos: async () => (await axiosInstance.get("/alunos")).data,
   saveAluno: async (aluno, id = null) => {
     if (id) return (await axiosInstance.put(`/alunos/${id}`, aluno)).data;
     return (await axiosInstance.post("/alunos", aluno)).data;
@@ -51,11 +58,12 @@ login: async (email, password) => { // Mudei de username para email para ficar c
   // --- MATRÍCULAS ---
   getMatriculas: async () => (await axiosInstance.get("/matriculas")).data,
   saveMatricula: async (matricula, id = null) => {
-    if (id) return (await axiosInstance.put(`/matriculas/${id}`, matricula)).data;
+    if (id)
+      return (await axiosInstance.put(`/matriculas/${id}`, matricula)).data;
     return (await axiosInstance.post("/matriculas", matricula)).data;
   },
-  deleteMatricula: async (id) => (await axiosInstance.delete(`/matriculas/${id}`)).data,
-
+  deleteMatricula: async (id) =>
+    (await axiosInstance.delete(`/matriculas/${id}`)).data,
   updateNota: async (termoId, teorica, pratica) => {
     return (
       await axiosInstance.patch(`/matriculas/termo/${termoId}`, {
@@ -66,18 +74,11 @@ login: async (email, password) => { // Mudei de username para email para ficar c
   },
 
   // --- FINANCEIRO ---
-  gerarParcelaGlobal: (dadosConfig) => {
-    return axiosInstance.post("/financeiro/gerar-lote-anual", dadosConfig);
-  },
-
-  gerarParcelaIndividual: (dados) => {
-    return axiosInstance.post("/financeiro/gerar-individual", dados);
-  },
-
-  getAllFinanceiro: async () => {
-    const res = await axiosInstance.get("/financeiro");
-    return res.data;
-  },
+  gerarParcelaGlobal: (dadosConfig) =>
+    axiosInstance.post("/financeiro/gerar-lote-anual", dadosConfig),
+  gerarParcelaIndividual: (dados) =>
+    axiosInstance.post("/financeiro/gerar-individual", dados),
+  getAllFinanceiro: async () => (await axiosInstance.get("/financeiro")).data,
   getPorMatricula: async (matriculaId) =>
     (await axiosInstance.get(`/financeiro/matricula/${matriculaId}`)).data,
   pagar: async (id) =>
@@ -93,3 +94,6 @@ login: async (email, password) => { // Mudei de username para email para ficar c
   getAulasNaoLancadas: () => axiosInstance.get("/aulas/nao-lancadas"),
   getHistoricoAulas: () => axiosInstance.get("/aulas/historico"),
 };
+
+// EXPORTAÇÃO PADRÃO (Importante para o seu projeto)
+export default api;

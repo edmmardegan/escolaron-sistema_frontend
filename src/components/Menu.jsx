@@ -27,11 +27,17 @@ export default function Menu() {
       <h2>Sistema</h2>
       <p>Olá, {user?.name}</p>
       <hr />
+      {user?.role === 'admin' && (
+        <>
+          <Link to="/usuarios" style={{color: 'white', textDecoration: 'none'}}>Usuários</Link>
+          <Link to="/financeiro" style={{color: 'white', textDecoration: 'none'}}>Financeiro</Link>
+        </>
+      )}
+
       <Link to="/alunos" style={{color: 'white', textDecoration: 'none'}}>Alunos</Link>
       <Link to="/cursos" style={{color: 'white', textDecoration: 'none'}}>Cursos</Link>
       <Link to="/matriculas" style={{color: 'white', textDecoration: 'none'}}>Matrículas</Link>
       <Link to="/agenda" style={{color: 'white', textDecoration: 'none'}}>Agenda</Link>
-      <Link to="/financeiro" style={{color: 'white', textDecoration: 'none'}}>Financeiro</Link>
       
       <button onClick={handleLogout} style={{marginTop: '20', background: '#e74c3c', color: 'white', border: 'none', padding: '10px', cursor: 'pointer'}}>
         Sair
