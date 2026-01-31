@@ -38,6 +38,7 @@ export default function Agenda() {
     setCarregando(true);
     try {
       let response;
+      // Note que aqui chamamos as funções da sua API
       if (abaAtiva === "dia") response = await api.getAgenda(dataAgenda);
       else if (abaAtiva === "pendentes")
         response = await api.getAulasNaoLancadas();
@@ -45,9 +46,17 @@ export default function Agenda() {
       else if (abaAtiva === "historico")
         response = await api.getHistoricoAulas();
 
-      const dados = response.data || response;
+      // EXPLICAÇÃO: Se sua API já retorna 'res.data', o 'response' já É o array.
+      // Se 'response.data' existir (caso o axios mude), ele usa. Caso contrário, usa o próprio 'response'.
+      const dados = response?.data || response;
+
+      console.log("ABA ATIVA:", abaAtiva); // Verifique se está na aba certa
+      console.log("CONTEÚDO DE DADOS:", dados); // Veja se é um array com objetos
+
       setAulas(Array.isArray(dados) ? dados : []);
+      console.log("Dados que chegaram no React:", dados); // O log salvador
     } catch (error) {
+      console.error("Erro ao carregar dados:", error);
       setAulas([]);
     } finally {
       setCarregando(false);
@@ -62,6 +71,7 @@ export default function Agenda() {
     await api.registrarPresenca(id);
     carregarDados();
   };
+
   const handleFalta = async (id) => {
     const motivo = prompt("Motivo da falta:");
     if (motivo !== null) {
@@ -70,18 +80,26 @@ export default function Agenda() {
     }
   };
 
+  const handleGerarAgenda = async () => {
+    try {
+      const resultado = await api.gerarAgendaMensal();
+      alert(resultado.message);
+    } catch (err) {
+      // ESTA LINHA VAI MOSTRAR O ERRO REAL NO CONSOLE AGORA:
+      console.error("DETALHES DO ERRO:", err.response?.data || err.message);
+      alert(
+        "Erro ao gerar agenda: " +
+          (err.response?.data?.message || "Erro de conexão"),
+      );
+    }
+  };
   return (
     <div className="container-agenda">
       <header className="header-card">
         <h2>Controle de Frequência</h2>
-        <button
-          className="btn btn-primary"
-          onClick={async () => {
-            await api.gerarMensal();
-            carregarDados();
-          }}
-        >
-          <FaCalendarAlt /> Gerar aulas do mês
+        <h1>O CODIGO NOVO ESTA AQUI</h1>
+        <button onClick={handleGerarAgenda} className="btn btn-primary">
+          <FaCalendarAlt /> Gerar Aulas do Mês
         </button>
       </header>
 
@@ -148,56 +166,117 @@ export default function Agenda() {
                 </td>
               </tr>
             ) : aulas.length > 0 ? (
-              aulas.map((aula) => (
-                <tr key={aula.id}>
-                  <td>
-                    {new Date(aula.data).toLocaleDateString("pt-BR")}
-                    <div className="sub-texto">
-                      {getDiaSemanaExtenso(aula.data.split("T")[0])}
-                    </div>
-                  </td>
-                  <td className="texto-negrito">
-                    <FaClock className="icon-pequeno" />
-                    {new Date(aula.data).toLocaleTimeString("pt-BR", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </td>
-                  <td>
-                    <strong>{aula.termo?.matricula?.aluno?.nome}</strong>
-                  </td>
-                  <td className="sub-texto">
-                    {aula.termo?.matricula?.curso?.nome}
-                  </td>
-                  <td>
-                    <span
-                      className={`badge status-${aula.status.toLowerCase()}`}
-                    >
-                      {aula.status}
-                    </span>
-                  </td>
-                  <td className="acoes">
-                    {aula.status === "Pendente" && (
-                      <>
+              aulas.map((aula) => {
+                console.log("CONTEÚDO DA AULA:", aula); // <--- ADICIONE ISSO
+                // Criamos uma variável para a data ignorando o fuso horário (meio-dia)
+                // Isso garante que o dia 29 não apareça como 28
+                const dataLocal = new Date(aula.data);
+
+                return (
+                  <tr key={aula.id}>
+                    <td>
+                      {/* Exibe a data formatada: 29/01/2026 */}
+                      {dataLocal.toLocaleDateString("pt-BR", {
+                        timeZone: "UTC",
+                      })}
+                      <div className="sub-texto">
+                        {/* Se o seu banco enviar a data como string, o split funciona. 
+                        Se enviar como objeto Date, usamos o toISOString antes */}
+                        {getDiaSemanaExtenso(
+                          new Date(aula.data).toISOString().split("T")[0],
+                        )}
+                      </div>
+                    </td>
+                    <td className="texto-negrito">
+                      <FaClock className="icon-pequeno" />
+                      {/* Exibe o horário: 12:00 */}
+                      {dataLocal.toLocaleTimeString("pt-BR", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        timeZone: "UTC", // Mantém o horário que salvamos (12:00)
+                      })}
+                    </td>
+                    <td>
+                      <strong>{aula.termo?.matricula?.aluno?.nome}</strong>
+                      {/* Se for o Histórico e houver uma observação, mostramos ela aqui */}
+                      {abaAtiva === "historico" && aula.obs && (
+                        <div
+                          style={{
+                            fontSize: "0.75rem",
+                            color: "#666",
+                            marginTop: "4px",
+                          }}
+                        >
+                          <FaExclamationTriangle
+                            style={{ color: "#e67e22", marginRight: "4px" }}
+                          />
+                          {aula.obs}
+                        </div>
+                      )}
+                    </td>
+                    <td className="sub-texto">
+                      {aula.termo?.matricula?.curso?.nome ||
+                        "Curso não definido"}
+                    </td>
+                    <td>
+                      <span
+                        className={`badge status-${aula.status?.toLowerCase()}`}
+                      >
+                        {aula.status}
+                      </span>
+                    </td>
+
+                    {/* -------------- BOTOES AÇÕES ------------------------*/}
+                    <td className="acoes">
+                      {/* ABA REPOSIÇÕES: Botão Único para Concluir Reposição */}
+                      {abaAtiva === "faltas" ? (
                         <button
-                          onClick={() => handlePresenca(aula.id)}
+                          onClick={async () => {
+                            const dataHojeISO = new Date()
+                              .toISOString()
+                              .split("T")[0];
+                            try {
+                              await api.registrarReposicao(
+                                aula.id,
+                                dataHojeISO,
+                              );
+                              alert("Reposição registrada com sucesso!");
+                              carregarDados();
+                            } catch (err) {
+                              alert("Erro ao registrar reposição.");
+                            }
+                          }}
                           className="btn-icon icon-edit"
-                          title="Presença"
+                          title="Registrar Reposição"
                         >
-                          <FaCheck />
+                          <FaCheck />{" "}
+                          <small style={{ marginLeft: "4px" }}>Reposição</small>
                         </button>
-                        <button
-                          onClick={() => handleFalta(aula.id)}
-                          className="btn-icon icon-trash"
-                          title="Falta"
-                        >
-                          <FaTimes />
-                        </button>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))
+                      ) : (
+                        /* OUTRAS ABAS (Agenda, Esquecidas, Histórico): Botões Normais */
+                        aula.status === "Pendente" && (
+                          <>
+                            <button
+                              onClick={() => handlePresenca(aula.id)}
+                              className="btn-icon icon-edit"
+                              title="Presença"
+                            >
+                              <FaCheck />
+                            </button>
+                            <button
+                              onClick={() => handleFalta(aula.id)}
+                              className="btn-icon icon-trash"
+                              title="Falta"
+                            >
+                              <FaTimes />
+                            </button>
+                          </>
+                        )
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td colSpan="6" className="texto-centralizado">

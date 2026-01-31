@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { FaUserPlus, FaSave } from "react-icons/fa";
 import api from "../../services/api";
+import "./styles.css"; // Usando o mesmo CSS das outras telas
 
 export default function Usuarios() {
   const [nome, setNome] = useState("");
@@ -12,61 +14,120 @@ export default function Usuarios() {
     e.preventDefault();
     setLoading(true);
     try {
-      // O seu backend NestJS deve ter a rota POST /usuarios
       await api.saveUsuario({
         nome,
         email,
         senha,
         role,
-        primeiroAcesso: true, // Força a troca de senha depois
+        primeiroAcesso: true, // Força o usuário a trocar a senha no primeiro login
       });
       alert("Usuário cadastrado com sucesso!");
       setNome("");
       setEmail("");
+      setSenha("123456");
+      setRole("user");
     } catch (error) {
       console.error(error);
-      alert("Erro ao cadastrar usuário.");
+      const msg = error.response?.data?.message || "Erro ao cadastrar usuário.";
+      alert(msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h1>Gestão de Usuários</h1>
-      <form
-        onSubmit={handleCadastro}
+    <div className="container-alunos">
+      <div className="card">
+        <div className="header-card">
+          <h2>
+            <FaUserPlus /> Gestão de Usuários
+          </h2>
+        </div>
+
+        <form onSubmit={handleCadastro} className="form-grid">
+          <div className="input-group campo-medio">
+            <label>Nome Completo:</label>
+            <input
+              className="input-field"
+              placeholder="Ex: João Silva"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="input-group campo-medio">
+            <label>Email (Login):</label>
+            <input
+              className="input-field"
+              placeholder="email@escola.com"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="input-group">
+            <label>Nível de Acesso:</label>
+            <select
+              className="input-field"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+            >
+              <option value="user">Usuário Comum (Secretaria)</option>
+              <option value="admin">Administrador (Total)</option>
+            </select>
+          </div>
+
+          <div className="input-group">
+            <label>Senha Inicial:</label>
+            <input
+              className="input-field"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              required
+            />
+            <small
+              style={{ color: "#666", marginTop: "5px", display: "block" }}
+            >
+              O usuário deverá trocar esta senha no primeiro acesso.
+            </small>
+          </div>
+
+          <div className="full-width" style={{ marginTop: "10px" }}>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={loading}
+            >
+              <FaSave /> {loading ? "Processando..." : "Cadastrar Usuário"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div
+        className="card"
         style={{
-          maxWidth: "400px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "10px",
+          marginTop: "20px",
+          padding: "20px",
+          backgroundColor: "#e9ecef",
         }}
       >
-        <input
-          placeholder="Nome Completo"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          required
-        />
-        <input
-          placeholder="Email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <select value={role} onChange={(e) => setRole(e.target.value)}>
-          <option value="user">Usuário Comum</option>
-          <option value="admin">Administrador</option>
-        </select>
-        <p>
-          <small>Senha padrão inicial: 123456</small>
-        </p>
-        <button type="submit" disabled={loading}>
-          {loading ? "Salvando..." : "Cadastrar Usuário"}
-        </button>
-      </form>
+        <h3>Informações Importantes</h3>
+        <ul style={{ marginLeft: "20px", marginTop: "10px" }}>
+          <li>
+            Novos usuários são criados com o status de{" "}
+            <strong>Primeiro Acesso</strong>.
+          </li>
+          <li>
+            Ao logar, o sistema detectará esse status e redirecionará para a
+            troca de senha.
+          </li>
+          <li>Certifique-se de que o e-mail é único no sistema.</li>
+        </ul>
+      </div>
     </div>
   );
 }

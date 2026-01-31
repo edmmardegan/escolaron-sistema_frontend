@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { FaTrash, FaPen, FaPlus, FaSave, FaTimes } from "react-icons/fa";
 import api from "../../services/api";
 import "./styles.css";
@@ -7,36 +7,46 @@ export default function Cursos() {
   const [listaCursos, setListaCursos] = useState([]);
   const [exibindoForm, setExibindoForm] = useState(false);
   const [editandoId, setEditandoId] = useState(null);
+  const [carregando, setCarregando] = useState(false);
   const [formCurso, setFormCurso] = useState({
     nome: "",
     valorMensalidade: "",
-    qtdeTermos: "" // Campo restaurado
+    qtdeTermos: "",
   });
 
-  useEffect(() => { carregar(); }, []);
+  useEffect(() => {
+    carregar();
+  }, []);
 
   const carregar = async () => {
     try {
+      setCarregando(true);
       const dados = await api.getCursos();
-      setListaCursos(dados);
-    } catch (e) { console.error(e); }
+      // Garante que listaCursos seja sempre um array
+      setListaCursos(Array.isArray(dados) ? dados : []);
+    } catch (e) {
+      console.error("Erro ao buscar cursos:", e);
+    } finally {
+      setCarregando(false);
+    }
   };
 
   const salvar = async (e) => {
     e.preventDefault();
     try {
-      // Garantindo que os valores numéricos sejam enviados corretamente
-      const payload = { 
-        ...formCurso, 
+      const payload = {
+        ...formCurso,
         valorMensalidade: Number(formCurso.valorMensalidade),
-        qtdeTermos: Number(formCurso.qtdeTermos) 
+        qtdeTermos: Number(formCurso.qtdeTermos),
       };
-      
+
       await api.saveCurso(payload, editandoId);
       alert("Curso salvo com sucesso!");
       limparECancelar();
       carregar();
-    } catch (e) { alert("Erro ao salvar."); }
+    } catch (e) {
+      alert("Erro ao salvar curso. Verifique se o servidor está ativo.");
+    }
   };
 
   const limparECancelar = () => {
@@ -46,9 +56,24 @@ export default function Cursos() {
   };
 
   const prepararEdicao = (curso) => {
-    setFormCurso(curso);
+    setFormCurso({
+      nome: curso.nome,
+      valorMensalidade: curso.valorMensalidade,
+      qtdeTermos: curso.qtdeTermos,
+    });
     setEditandoId(curso.id);
     setExibindoForm(true);
+  };
+
+  const excluir = async (id) => {
+    if (window.confirm("Deseja realmente excluir este curso?")) {
+      try {
+        await api.deleteCurso(id);
+        carregar();
+      } catch (e) {
+        alert("Erro ao excluir curso.");
+      }
+    }
   };
 
   return (
@@ -57,7 +82,10 @@ export default function Cursos() {
         <div className="header-card">
           <h2>Gerenciar Cursos</h2>
           {!exibindoForm && (
-            <button className="btn btn-primary" onClick={() => setExibindoForm(true)}>
+            <button
+              className="btn btn-primary"
+              onClick={() => setExibindoForm(true)}
+            >
               <FaPlus /> Novo Curso
             </button>
           )}
@@ -67,45 +95,59 @@ export default function Cursos() {
           <form onSubmit={salvar} className="form-grid">
             <div className="input-group campo-medio">
               <label>Nome do Curso:</label>
-              <input 
-                required 
-                name="nome" 
-                value={formCurso.nome} 
-                onChange={(e) => setFormCurso({...formCurso, nome: e.target.value})} 
-                className="input-field" 
+              <input
+                required
+                name="nome"
+                value={formCurso.nome}
+                onChange={(e) =>
+                  setFormCurso({ ...formCurso, nome: e.target.value })
+                }
+                className="input-field"
               />
             </div>
 
             <div className="input-group">
               <label>Valor Mensalidade (R$):</label>
-              <input 
+              <input
                 type="number"
                 step="0.01"
                 required
-                name="valorMensalidade" 
+                name="valorMensalidade"
                 placeholder="R$ 0,00"
-                value={formCurso.valorMensalidade} 
-                onChange={(e) => setFormCurso({...formCurso, valorMensalidade: e.target.value})} 
-                className="input-field" 
+                value={formCurso.valorMensalidade}
+                onChange={(e) =>
+                  setFormCurso({
+                    ...formCurso,
+                    valorMensalidade: e.target.value,
+                  })
+                }
+                className="input-field"
               />
             </div>
 
-            {/* Campo Qtde Termos Restaurado */}
             <div className="input-group">
-              <label>Qtde Termos:</label>
-              <input 
+              <label>Qtde Termos/Módulos:</label>
+              <input
                 type="number"
                 required
-                name="qtdeTermos" 
-                value={formCurso.qtdeTermos} 
-                onChange={(e) => setFormCurso({...formCurso, qtdeTermos: e.target.value})} 
-                className="input-field" 
+                name="qtdeTermos"
+                value={formCurso.qtdeTermos}
+                onChange={(e) =>
+                  setFormCurso({ ...formCurso, qtdeTermos: e.target.value })
+                }
+                className="input-field"
               />
             </div>
-            
+
             <div className="acoes-form">
-              <button type="submit" className="btn btn-primary"><FaSave /> Salvar Curso</button>
-              <button type="button" className="btn btn-secondary" onClick={limparECancelar}>
+              <button type="submit" className="btn btn-primary">
+                <FaSave /> Salvar Curso
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={limparECancelar}
+              >
                 <FaTimes /> Cancelar
               </button>
             </div>
@@ -114,29 +156,63 @@ export default function Cursos() {
       </div>
 
       <div className="tabela-container">
-        <table className="tabela">
-          <thead>
-            <tr>
-              <th>Curso</th>
-              <th>Módulos</th>
-              <th>Valor Mensalidade</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {listaCursos.map(c => (
-              <tr key={c.id}>
-                <td><strong>{c.nome}</strong></td>
-                <td>{c.qtdeTermos} Módulos</td>
-                <td>{Number(c.valorMensalidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
-                <td className="acoes">
-                  <button onClick={() => prepararEdicao(c)} className="btn-icon icon-edit"><FaPen /></button>
-                  <button onClick={() => api.deleteCurso(c.id).then(carregar)} className="btn-icon icon-trash"><FaTrash /></button>
-                </td>
+        {carregando ? (
+          <p style={{ padding: "20px" }}>Carregando cursos...</p>
+        ) : (
+          <table className="tabela">
+            <thead>
+              <tr>
+                <th>Curso</th>
+                <th>Módulos</th>
+                <th>Valor Mensalidade</th>
+                <th>Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {listaCursos.length > 0 ? (
+                listaCursos.map((c) => (
+                  <tr key={c.id}>
+                    <td>
+                      <strong>{c.nome}</strong>
+                    </td>
+                    <td>{c.qtdeTermos} Módulos</td>
+                    <td>
+                      {Number(c.valorMensalidade).toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })}
+                    </td>
+                    <td className="acoes">
+                      <button
+                        onClick={() => prepararEdicao(c)}
+                        className="btn-icon icon-edit"
+                        title="Editar"
+                      >
+                        <FaPen />
+                      </button>
+                      <button
+                        onClick={() => excluir(c.id)}
+                        className="btn-icon icon-trash"
+                        title="Excluir"
+                      >
+                        <FaTrash />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="4"
+                    style={{ textAlign: "center", padding: "20px" }}
+                  >
+                    Nenhum curso encontrado.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
