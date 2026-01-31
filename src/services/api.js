@@ -23,13 +23,15 @@ const api = {
   },
 
   resetPassword: async (novaSenha) => {
-    const res = await axiosInstance.post("/usuarios/reset-password", { novaSenha });
+    const res = await axiosInstance.post("/usuarios/reset-password", {
+      novaSenha,
+    });
     return res.data;
   },
 
   // === ALUNOS ===
   getAlunos: async () => (await axiosInstance.get("/alunos")).data,
-  
+
   saveAluno: async (aluno, id = null) => {
     if (id) return (await axiosInstance.put(`/alunos/${id}`, aluno)).data;
     return (await axiosInstance.post("/alunos", aluno)).data;
@@ -51,11 +53,13 @@ const api = {
   getMatriculas: async () => (await axiosInstance.get("/matriculas")).data,
 
   saveMatricula: async (matricula, id = null) => {
-    if (id) return (await axiosInstance.put(`/matriculas/${id}`, matricula)).data;
+    if (id)
+      return (await axiosInstance.put(`/matriculas/${id}`, matricula)).data;
     return (await axiosInstance.post("/matriculas", matricula)).data;
   },
 
-  deleteMatricula: async (id) => (await axiosInstance.delete(`/matriculas/${id}`)).data,
+  deleteMatricula: async (id) =>
+    (await axiosInstance.delete(`/matriculas/${id}`)).data,
 
   // === NOTAS / BOLETIM ===
   updateNota: async (termoId, notaTeorica, notaPratica) => {
@@ -69,40 +73,58 @@ const api = {
   // === FINANCEIRO ===
   getAllFinanceiro: async () => (await axiosInstance.get("/financeiro")).data,
 
-  getPorMatricula: async (matriculaId) => (await axiosInstance.get(`/financeiro/matricula/${matriculaId}`)).data,
+  getPorMatricula: async (matriculaId) =>
+    (await axiosInstance.get(`/financeiro/matricula/${matriculaId}`)).data,
 
-  pagar: async (id) => (await axiosInstance.post(`/financeiro/${id}/pagar`)).data,
+  pagar: async (id) =>
+    (await axiosInstance.post(`/financeiro/${id}/pagar`)).data,
 
-  estornar: async (id) => (await axiosInstance.post(`/financeiro/${id}/estornar`)).data,
+  estornar: async (id) =>
+    (await axiosInstance.post(`/financeiro/${id}/estornar`)).data,
 
-  deleteParcela: async (id) => (await axiosInstance.delete(`/financeiro/${id}`)).data,
+  deleteParcela: async (id) =>
+    (await axiosInstance.delete(`/financeiro/${id}`)).data,
 
-  gerarParcelaIndividual: async (dados) => (await axiosInstance.post("/financeiro/gerar-individual", dados)).data,
+  gerarParcelaIndividual: async (dados) =>
+    (await axiosInstance.post("/financeiro/gerar-individual", dados)).data,
 
-  gerarParcelaGlobal: async (dados) => (await axiosInstance.post("/financeiro/gerar-lote-anual", dados)).data,
+  gerarParcelaGlobal: async (dados) =>
+    (await axiosInstance.post("/financeiro/gerar-lote-anual", dados)).data,
 
   // === USUÁRIOS ===
-  saveUsuario: async (usuario) => (await axiosInstance.post("/usuarios", usuario)).data,
+  saveUsuario: async (usuario) =>
+    (await axiosInstance.post("/usuarios", usuario)).data,
 
   // === 📅 AGENDA AULA (Ajustado para o seu index.jsx) ===
-  getAgenda: async (data) => (await axiosInstance.get(`/aulas/agenda?data=${data}`)).data,
+  getAgenda: async (data) =>
+    (await axiosInstance.get(`/aulas/agenda?data=${data}`)).data,
 
-  getAulasNaoLancadas: async () => (await axiosInstance.get("/aulas/nao-lancadas")).data,
+  getAulasNaoLancadas: async () =>
+    (await axiosInstance.get("/aulas/nao-lancadas")).data,
 
-  getFaltasPendentes: async () => (await axiosInstance.get("/aulas/pendentes")).data,
+  getFaltasPendentes: async () =>
+    (await axiosInstance.get("/aulas/pendentes")).data,
 
-  getHistoricoAulas: async () => (await axiosInstance.get("/aulas/historico")).data,
+  getHistoricoAulas: async () =>
+    (await axiosInstance.get("/aulas/historico")).data,
 
-  registrarPresenca: async (id) => (await axiosInstance.patch(`/aulas/${id}/presenca`)).data,
+  registrarPresenca: async (id) =>
+    (await axiosInstance.patch(`/aulas/${id}/presenca`)).data,
 
   registrarReposicao: async (id, novaData) => {
-    const res = await axiosInstance.patch(`/aulas/${id}/reposicao`, { novaData });
+    const res = await axiosInstance.patch(`/aulas/${id}/reposicao`, {
+      novaData,
+    });
     return res.data;
   },
 
-  registrarFalta: async (id, motivo) => (await axiosInstance.patch(`/aulas/${id}/falta`, { motivo })).data,
+  registrarFalta: async (id, motivo) =>
+    (await axiosInstance.patch(`/aulas/${id}/falta`, { motivo })).data,
 
-  gerarAgendaMensal: async () => (await axiosInstance.post("/aulas/gerar-mensal")).data,
+  gerarAgendaMensal: async (mes, ano) => {
+    const res = await axiosInstance.post("/aulas/gerar-mensal", { mes, ano });
+    return res.data;
+  },
 };
 
 export default api;

@@ -18,6 +18,10 @@ export default function Agenda() {
     new Date().toISOString().split("T")[0],
   );
   const [carregando, setCarregando] = useState(false);
+  const [mesSelecionado, setMesSelecionado] = useState(new Date().getMonth());
+  const [anoSelecionado, setAnoSelecionado] = useState(
+    new Date().getFullYear(),
+  );
 
   const getDiaSemanaExtenso = (data) => {
     if (!data) return "";
@@ -82,22 +86,53 @@ export default function Agenda() {
 
   const handleGerarAgenda = async () => {
     try {
-      const resultado = await api.gerarAgendaMensal();
-      alert(resultado.message);
-    } catch (err) {
-      // ESTA LINHA VAI MOSTRAR O ERRO REAL NO CONSOLE AGORA:
-      console.error("DETALHES DO ERRO:", err.response?.data || err.message);
-      alert(
-        "Erro ao gerar agenda: " +
-          (err.response?.data?.message || "Erro de conexão"),
+      // Enviamos o mês e o ano escolhidos para o backend
+      const resultado = await api.gerarAgendaMensal(
+        mesSelecionado,
+        anoSelecionado,
       );
+      alert(resultado.message);
+      carregarDados();
+    } catch (err) {
+      alert("Erro ao gerar agenda");
     }
   };
+
   return (
     <div className="container-agenda">
       <header className="header-card">
         <h2>Controle de Frequência</h2>
-        <h1>O CODIGO NOVO ESTA AQUI</h1>
+        
+        <div className="gerador-controles">
+          <select
+            value={mesSelecionado}
+            onChange={(e) => setMesSelecionado(Number(e.target.value))}
+            className="input-field"
+          >
+            <option value={0}>Janeiro</option>
+            <option value={1}>Fevereiro</option>
+            <option value={2}>Março</option>
+            <option value={3}>Abril</option>
+            <option value={4}>Maio</option>
+            <option value={5}>Junho</option>
+            <option value={6}>Julho</option>
+            <option value={7}>Agosto</option>
+            <option value={8}>Setembro</option>
+            <option value={9}>Outubro</option>
+            <option value={10}>Novembro</option>
+            <option value={11}>Dezembro</option>
+          </select>
+
+          <select
+            value={anoSelecionado}
+            onChange={(e) => setAnoSelecionado(Number(e.target.value))}
+            className="input-field"
+          >
+            <option value={2025}>2025</option>
+            <option value={2026}>2026</option>
+          </select>
+
+        </div>
         <button onClick={handleGerarAgenda} className="btn btn-primary">
           <FaCalendarAlt /> Gerar Aulas do Mês
         </button>
